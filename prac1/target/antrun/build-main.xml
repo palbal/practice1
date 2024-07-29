@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="maven-antrun-" default="main">
+  <target name="main">
+    <taskdef resource="cargo.tasks" />
+    <cargo action="stop" containerId="tomcat8x" home="D:\practice\mvn\prac1\target/cargo/containers/apache-tomcat-8.5.100">
+      <configuration home="D:\practice\mvn\prac1\target/cargo/configurations/tomcat8x">
+        <property name="cargo.servlet.port" value="8080" />
+        <property name="cargo.rmi.port" value="8079" />
+      </configuration>
+    </cargo>
+    <cargo action="stop" containerId="tomcat9x" home="D:\practice\mvn\prac1\target/cargo/containers/apache-tomcat-9.0.90">
+      <configuration home="D:\practice\mvn\prac1\target/cargo/configurations/tomcat9x">
+        <property name="cargo.servlet.port" value="18080" />
+        <property name="cargo.rmi.port" value="18079" />
+      </configuration>
+    </cargo>
+  </target>
+</project>

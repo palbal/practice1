@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Codehaus Cargo, copyright 2004-2011 Vincent Massol, 2012-2024 Ali Tokmen.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>practice</groupId>
+  <artifactId>prac1</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <name>Maven Webapp</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.10.3</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <servlet.port>8080</servlet.port>
+    <servlet2.port>18080</servlet2.port>
+    <rmi.port>8079</rmi.port>
+    <rmi2.port>18079</rmi2.port>
+    <ajp.port>8009</ajp.port>
+    <ajp2.port>18009</ajp2.port>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.13.0</version>
+          <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>3.3.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>3.3.2</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.7.1</version>
+        <executions>
+          <execution>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.tomcat</groupId>
+                  <artifactId>tomcat</artifactId>
+                  <version>8.5.100</version>
+                  <type>zip</type>
+                  <outputDirectory>${project.build.directory}/cargo/containers</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.tomcat</groupId>
+                  <artifactId>tomcat</artifactId>
+                  <version>9.0.90</version>
+                  <type>zip</type>
+                  <outputDirectory>${project.build.directory}/cargo/containers</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>start</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <taskdef resource="cargo.tasks"/>
+
+                <cargo containerId="tomcat8x" action="start" home="${project.build.directory}/cargo/containers/apache-tomcat-8.5.100">
+                  <configuration home="${project.build.directory}/cargo/configurations/tomcat8x">
+                    <property name="cargo.servlet.port" value="${servlet.port}"/>
+                    <property name="cargo.rmi.port" value="${rmi.port}"/>
+                    <property name="cargo.tomcat.ajp.port" value="${ajp.port}"/>
+                    <deployable type="war" file="${project.build.directory}/prac1-1.0-SNAPSHOT.war">
+                      <property name="context" value="prac1"/>
+                    </deployable>
+                  </configuration>
+                </cargo>
+                <cargo containerId="tomcat9x" action="start" home="${project.build.directory}/cargo/containers/apache-tomcat-9.0.90">
+                  <configuration home="${project.build.directory}/cargo/configurations/tomcat9x">
+                    <property name="cargo.servlet.port" value="${servlet2.port}"/>
+                    <property name="cargo.rmi.port" value="${rmi2.port}"/>
+                    <property name="cargo.tomcat.ajp.port" value="${ajp2.port}"/>
+                    <deployable type="war" file="${project.build.directory}/prac1-1.0-SNAPSHOT.war">
+                      <property name="context" value="prac1"/>
+                    </deployable>
+                  </configuration>
+                </cargo>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>stop</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <taskdef resource="cargo.tasks"/>
+
+                <cargo containerId="tomcat8x" action="stop" home="${project.build.directory}/cargo/containers/apache-tomcat-8.5.100">
+                  <configuration home="${project.build.directory}/cargo/configurations/tomcat8x">
+                    <property name="cargo.servlet.port" value="${servlet.port}"/>
+                    <property name="cargo.rmi.port" value="${rmi.port}"/>
+                  </configuration>
+                </cargo>
+                <cargo containerId="tomcat9x" action="stop" home="${project.build.directory}/cargo/containers/apache-tomcat-9.0.90">
+                  <configuration home="${project.build.directory}/cargo/configurations/tomcat9x">
+                    <property name="cargo.servlet.port" value="${servlet2.port}"/>
+                    <property name="cargo.rmi.port" value="${rmi2.port}"/>
+                  </configuration>
+                </cargo>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-core-uberjar</artifactId>
+            <version>1.10.14</version>
+          </dependency>
+          <dependency>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-ant</artifactId>
+            <version>1.10.14</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>perform-it</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+            <configuration>
+              <systemPropertyVariables>
+                <servlet.port>${servlet.port}</servlet.port>
+                <servlet2.port>${servlet2.port}</servlet2.port>
+              </systemPropertyVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>verify-it</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
